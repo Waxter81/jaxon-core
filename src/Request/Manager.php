@@ -53,7 +53,7 @@ class Manager
     {
 
         $this->aArgs = array();
-        $this->nMethod = Jaxon::METHOD_UNKNOWN;
+        $this->nMethod = Jaxon::METHOD_UNKNOWN;            
         
         if(isset($_POST['jxnargs']))
         {
@@ -69,7 +69,8 @@ class Manager
         {
             array_walk($this->aArgs, array(&$this, '__argumentStripSlashes'));
         }
-        array_walk($this->aArgs, array(&$this, '__argumentDecode'));
+                
+        array_walk($this->aArgs, array(&$this, '__argumentDecode'));        
     }
 
     /**
@@ -181,6 +182,7 @@ class Manager
      *
      * @return void
      */
+    /*
     private function __argumentDecodeUTF8_iconv(&$mArg)
     {
         if(is_array($mArg))
@@ -201,8 +203,34 @@ class Manager
         elseif(is_string($mArg))
         {
             $mArg = iconv("UTF-8", $this->getOption('core.encoding') . '//TRANSLIT', $mArg);
+
         }
+    }*/
+    
+    
+    /**
+     * MLG - Decode an Jaxon request argument and convert to UTF8 with iconv
+     *
+     * @param string|array        $mArg                The Jaxon request argument
+     *
+     * @return void
+     */
+    
+    private function __argumentDecodeUTF8_iconv($mArg)
+    {
+    	if(is_array($mArg)) {
+    		array_walk_recursive($mArg, function(&$item, $key){
+    			$item = iconv("UTF-8", $this->getOption('core.encoding') . '//TRANSLIT', $item);    			
+    		});
+    	}
+    	elseif(is_string($mArg))
+    	{
+    		$mArg = iconv("UTF-8", $this->getOption('core.encoding') . '//TRANSLIT', $mArg);
+    	}
+    	
+    	return $mArg;
     }
+
     
     /**
      * Decode an Jaxon request argument and convert to UTF8 with mb_convert_encoding
@@ -242,9 +270,9 @@ class Manager
      * @return void
      */
     private function __argumentDecodeUTF8_utf8_decode(&$mArg)
-    {
+    {    	
         if(is_array($mArg))
-        {
+        {        	
             foreach($mArg as $sKey => $xArg)
             {
                 $sNewKey = $sKey;
@@ -284,10 +312,10 @@ class Manager
      * @return array
      */
     public function process()
-    {
+    {    	        	
         if(($this->getOption('core.decode_utf8')))
         {
-            $sFunction = '';
+            $sFunction = '';            
             
             if(function_exists('iconv'))
             {
@@ -298,16 +326,21 @@ class Manager
                 $sFunction = "mb_convert_encoding";
             }
             elseif($this->getOption('core.encoding') == "ISO-8859-1")
-            {
-                $sFunction = "utf8_decode";
+            {            	
+                $sFunction = "utf8_decode";                
             }
             else
             {
                 throw new \Jaxon\Exception\Error($this->trans('errors.request.conversion'));
             }
 
-            $mFunction = array(&$this, '__argumentDecodeUTF8_' . $sFunction);
-            array_walk($this->aArgs, $mFunction);
+            // MLG - Array_walk no funciona. Añadimos método personalizado
+            if($sFunction == "iconv") $this->aArgs = $this->__argumentDecodeUTF8_iconv($this->aArgs);
+            else {
+           		$mFunction = array(&$this, '__argumentDecodeUTF8_' . $sFunction);
+            	array_walk($this->aArgs, $mFunction);
+            }	
+            
             $this->setOption('core.decode_utf8', false);
         }
         
