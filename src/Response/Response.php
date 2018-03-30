@@ -1290,10 +1290,14 @@ class Response
 
         foreach($this->aCommands as $xCommand)
         {
-            $response['jxnobj'][] = $xCommand;
-        }
-
-        return json_encode($response);
+        	if($this->getOption('core.encoding') == 'ISO-8859-1') {
+        		$response['jxnobj'][] = utf8_converter($xCommand);
+        	}
+        	else $response['jxnobj'][] = $xCommand;
+        }        
+        
+        $response = json_encode($response);
+        return $response;
     }
 
     /**
@@ -1304,5 +1308,25 @@ class Response
     public function printOutput()
     {
         print $this->getOutput();
+    }   
+    
+    /**
+     * 
+     * @param unknown $mArg
+     * @return unknown
+     */
+    private function utf8_converter($mArg)
+    {
+    	if(is_array($mArg)) {
+    		array_walk_recursive($mArg, function(&$item, $key){
+    			$item = utf8_encode($item);    			
+    		});
+    	}
+    	elseif(is_string($mArg))
+    	{
+    		$array = utf8_encode($mArg);
+    	}
+    	
+    	return $mArg;
     }
 }
