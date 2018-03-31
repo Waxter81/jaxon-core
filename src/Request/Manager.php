@@ -182,7 +182,7 @@ class Manager
      *
      * @return void
      */
-    /*
+    
     private function __argumentDecodeUTF8_iconv(&$mArg)
     {
         if(is_array($mArg))
@@ -205,7 +205,7 @@ class Manager
             $mArg = iconv("UTF-8", $this->getOption('core.encoding') . '//TRANSLIT', $mArg);
 
         }
-    }*/
+    }
     
     
     /**
@@ -216,7 +216,7 @@ class Manager
      * @return void
      */
     
-    private function __argumentDecodeUTF8_iconv($mArg)
+    private function myArgumentDecodeUTF8_iconv($mArg)
     {
     	if(is_array($mArg)) {
     		array_walk_recursive($mArg, function(&$item, $key){
@@ -335,7 +335,7 @@ class Manager
             }
 
             // MLG - Array_walk no funciona. Añadimos método personalizado
-            if($sFunction == "iconv") $this->aArgs = $this->__argumentDecodeUTF8_iconv($this->aArgs);
+            if($sFunction == "iconv") $this->aArgs = $this->myArgumentDecodeUTF8_iconv($this->aArgs);
             else {
            		$mFunction = array(&$this, '__argumentDecodeUTF8_' . $sFunction);
             	array_walk($this->aArgs, $mFunction);
